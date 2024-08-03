@@ -1,0 +1,6 @@
+fastapi==0.112.0
+passlib==1.7.4
+python-dotenv==1.0.1
+SQLAlchemy==2.0.31
+uvicorn==0.30.5
+asyncpg==0.29.0
