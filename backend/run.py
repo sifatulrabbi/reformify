@@ -1,7 +1,7 @@
 import uvicorn
 import asyncio
 from configs import PORT
-from db import migration
+from database import migration
 
 if __name__ == "__main__":
     asyncio.run(migration())

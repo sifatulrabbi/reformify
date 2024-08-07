@@ -5,11 +5,31 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from configs import DB_HOST, DB_NAME, DB_PASS, DB_USER
 
 url = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
-engine = create_async_engine(url, echo=True)
+engine = create_async_engine(url)
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class DBConn:
+    def __init__(self):
+        self.factory = async_sessionmaker(engine)
+
+    async def __aenter__(self):
+        self.session = self.factory()
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            print(
+                f"An exception during database operation: {exc_type}",
+                exc_value,
+                traceback,
+            )
+            await self.session.rollback()
+            return
+        await self.session.close()
 
 
 async def get_db_session():
