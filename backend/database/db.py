@@ -1,4 +1,6 @@
 import logging
+from typing import Annotated
+from fastapi import Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -44,6 +46,7 @@ async def get_db_session():
         finally:
             await session.close()
 
+InjectDB = Annotated[DBConn, Depends(DBConn)]
 
 async def migration():
     logging.info("Starting the migration")

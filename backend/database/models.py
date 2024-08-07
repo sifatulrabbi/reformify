@@ -16,9 +16,8 @@ class User(Base):
     id = Column(
         UUID(as_uuid=True), primary_key=True, default=uuid4(), unique=True, index=True
     )
-    username = Column(CHAR(length=100))
-    fullname = Column(String(length=256))
     email = Column(String(length=500), index=True, unique=True)
+    fullname = Column(String(length=256))
     password = Column(String(length=256))
     created_at = Column(DATE, default=utctime)
     updated_at = Column(DATE, default=utctime, onupdate=utctime)

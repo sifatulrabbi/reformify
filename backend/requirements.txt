@@ -4,3 +4,4 @@ python-dotenv==1.0.1
 SQLAlchemy==2.0.31
 uvicorn==0.30.5
 asyncpg==0.29.0
+httpx==0.27.0
