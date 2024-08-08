@@ -2,20 +2,16 @@ import logging
 from typing import Annotated, AsyncContextManager
 from fastapi import Depends
 from contextlib import asynccontextmanager
-from configs import DB_HOST, DB_NAME, DB_PASS, DB_USER
+from configs import DB_URL
 from sqlalchemy import MetaData
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-url = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
-engine = create_async_engine(url)
+engine = create_async_engine(DB_URL)
 metadata = MetaData()
 SessionMaker = async_sessionmaker(bind=engine)
-
-
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 
 @asynccontextmanager
