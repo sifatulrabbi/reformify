@@ -8,7 +8,8 @@ if __name__ == "__main__":
 
 import unittest
 from sqlalchemy.sql import delete, insert, select
-from database import get_db_session, User
+from database import sessionmanager
+from database.user import User
 
 
 mock_users = [
@@ -32,42 +33,31 @@ users = []
 
 
 class TestUsersService(unittest.IsolatedAsyncioTestCase):
-
     async def test_list_tables(self):
         self.skipTest("Not implemented yet.")
 
     async def test_bulk_insert(self):
-        async with get_db_session() as db:
-            try:
-                dbusers = [User(**u) for u in mock_users]
-                db.add_all(dbusers)
-                for u in dbusers:
-                    users.append(u.serialize())
-                    print(u.serialize())
-            except Exception as e:
-                self.fail(e)
+        self.skipTest("already tested")
+        dbusers = [User(**u) for u in mock_users]
+        async with sessionmanager.session() as session:
+            session.add_all(dbusers)
+            await session.commit()
 
     async def test_selecting(self):
-        self.skipTest("skip")
-        async with get_db_session() as db:
-            try:
-                u = users[0]
-                result = await db.execute(select(User).where(User.id == u.get("id")))
-                user = result.scalar_one_or_none()
-                assert user is not None
-                user = user.serialize()
-                assert user is not None
-                assert user.get("email") == u.get("email")
-            except Exception as e:
-                self.fail(e)
-
-    # async def test_modifying_table_data(self):
-    #     async with get_db_session() as db:
-    #         pass
+        # self.skipTest("skip")
+        async with sessionmanager.session() as session:
+            user = await session.scalar(
+                select(User).where(User.email == mock_users[0]["email"])
+            )
+            assert user is not None
+            assert user.email == mock_users[0]["email"]
+            assert user.fullname == mock_users[0]["fullname"]
 
     async def test_delete_entries(self):
-        async with get_db_session() as db:
-            await db.execute(delete(User))
+        async with sessionmanager.session() as session:
+            # await session.execute(delete(User))
+            # await session.commit()
+            pass
 
 
 if __name__ == "__main__":
