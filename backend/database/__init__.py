@@ -1,2 +1,3 @@
 from .db import migration, InjectDB, get_db_session, DBConn
-from .models import User, ProfileSection
+from .user import User
+from .profile_section import ProfileSection

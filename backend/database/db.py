@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 url = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 engine = create_async_engine(url)
 metadata = MetaData()
+SessionMaker = async_sessionmaker(bind=engine)
 
 
 class Base(DeclarativeBase):
@@ -19,8 +20,6 @@ class Base(DeclarativeBase):
 
 @asynccontextmanager
 async def get_db_session():
-    # async with engine.begin() as session:
-    SessionMaker = async_sessionmaker(bind=engine)
     async with SessionMaker() as session:
         try:
             yield session
