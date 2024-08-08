@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from database import DBSessionDep
 
 user_router = APIRouter(
-    prefix="/api/users",
+    prefix="/users",
     tags=["users"],
     responses={404: {"message": "Not found"}},
 )

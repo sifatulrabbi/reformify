@@ -13,5 +13,5 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, title="Reformify", debug=True)
 
-app.include_router(auth_router)
-app.include_router(user_router)
+app.include_router(auth_router, prefix="/reformify/api")
+app.include_router(user_router, prefix="/reformify/api")

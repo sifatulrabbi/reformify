@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import uuid4
 from sqlalchemy.orm import Mapped, mapped_column
-from .db import Base
+from . import Base
 
 
 class User(Base):
