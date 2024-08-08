@@ -6,8 +6,9 @@ if __name__ == "__main__":
     sys.path.append(parent_dir)
 
 
-import unittest
-from sqlalchemy.sql import delete, insert, select
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import delete, select
 from database import sessionmanager
 from database.user import User
 
@@ -32,33 +33,32 @@ mock_users = [
 users = []
 
 
-class TestUsersService(unittest.IsolatedAsyncioTestCase):
-    async def test_list_tables(self):
-        self.skipTest("Not implemented yet.")
+async def test_bulk_insert(session: AsyncSession):
+    dbusers = [User(**u) for u in mock_users]
+    session.add_all(dbusers)
+    await session.commit()
 
-    async def test_bulk_insert(self):
-        self.skipTest("already tested")
-        dbusers = [User(**u) for u in mock_users]
-        async with sessionmanager.session() as session:
-            session.add_all(dbusers)
-            await session.commit()
 
-    async def test_selecting(self):
-        # self.skipTest("skip")
-        async with sessionmanager.session() as session:
-            user = await session.scalar(
-                select(User).where(User.email == mock_users[0]["email"])
-            )
-            assert user is not None
-            assert user.email == mock_users[0]["email"]
-            assert user.fullname == mock_users[0]["fullname"]
+async def test_selecting(session: AsyncSession):
+    user = await session.scalar(
+        select(User).where(User.email == mock_users[0]["email"])
+    )
+    assert user is not None
+    assert user.email == mock_users[0]["email"]
+    assert user.fullname == mock_users[0]["fullname"]
 
-    async def test_delete_entries(self):
-        async with sessionmanager.session() as session:
-            # await session.execute(delete(User))
-            # await session.commit()
-            pass
+
+async def test_delete_entries(session: AsyncSession):
+    await session.execute(delete(User))
+    await session.commit()
+
+
+async def run_tests():
+    async with sessionmanager.session() as session:
+        await test_bulk_insert(session)
+        await test_selecting(session)
+        await test_delete_entries(session)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    asyncio.run(run_tests())
