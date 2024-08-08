@@ -2,7 +2,7 @@ from uuid import uuid4
 from datetime import datetime, UTC
 from sqlalchemy import CHAR, UUID, Column, String, Boolean, DATE, ForeignKey
 from sqlalchemy.orm import relationship
-from .db import Base
+from .db import Base, metadata
 
 
 def utctime():
@@ -23,6 +23,11 @@ class User(Base):
     updated_at = Column(DATE, default=utctime, onupdate=utctime)
     deleted = Column(Boolean, default=False)
     # sections = relationship("ProfileSection", back_populates="user")
+
+    def __init__(self, *, email: str, fullname: str, password: str):
+        self.email = email
+        self.fullname = fullname
+        self.password = password
 
 
 class ProfileSection(Base):
