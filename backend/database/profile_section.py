@@ -1,6 +1,6 @@
 from uuid import uuid4
 from sqlalchemy import UUID, Column, String
-from .db import Base
+from . import Base
 
 
 class ProfileSection(Base):

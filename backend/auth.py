@@ -6,15 +6,18 @@ from jwt.exceptions import InvalidTokenError
 from configs import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from passlib.context import CryptContext
 from datetime import timedelta, timezone, datetime
-from .users import UsersService
+from crud.users import get_user_by_id
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
+# TODO: refactor the auth service using only functions
+# some of these functions should also take in db_session: AsyncSession
+
+
 class AuthService:
-    def __init__(self, users_service: UsersService):
-        self._users_service = users_service
+    def __init__(self):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def create_access_token(
@@ -50,7 +53,7 @@ class AuthService:
             raise e
 
         id = payload.get("sub")
-        user = await self._users_service.get_by_id(id)
+        user = await get_user_by_id(id)
         if not user:
             raise HTTPException(401, "user not found")
         return user
