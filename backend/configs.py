@@ -3,14 +3,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PORT = os.getenv("PORT", "localhost")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_NAME = os.getenv("DB_NAME", "localhost")
-DB_PASS = os.getenv("DB_PASS", "localhost")
-DB_USER = os.getenv("DB_USER", "localhost")
-DB_DRIVER = os.getenv("DB_DRIVER", "localhost")
+
+PORT = os.getenv("PORT", None)
+DB_HOST = os.getenv("DB_HOST", None)
+DB_NAME = os.getenv("DB_NAME", None)
+DB_PASS = os.getenv("DB_PASS", None)
+DB_USER = os.getenv("DB_USER", None)
+DB_DRIVER = os.getenv("DB_DRIVER", None)
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", None)
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 if not JWT_SECRET_KEY:
     raise Exception("JWT_SECRET_KEY env is required")
+if not DB_HOST:
+    raise Exception("DB_HOST env is required")
+if not DB_NAME:
+    raise Exception("DB_NAME env is required")
+if not DB_PASS:
+    raise Exception("DB_PASS env is required")
+if not DB_USER:
+    raise Exception("DB_USER env is required")
+if not DB_DRIVER:
+    raise Exception("DB_DRIVER env is required")
