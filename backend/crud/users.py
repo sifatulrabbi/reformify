@@ -30,18 +30,11 @@ async def create_user(
         raise Exception(
             "Unable to create user. 'email', 'password', and 'fullname' is required."
         )
-    try:
-        user = User(email=email, password=password, fullname=fullname)
-        db_session.add(user)
-        await db_session.commit()
-    except IntegrityError as e:
-        await db_session.rollback()
-        if isinstance(e, UniqueViolationError):
-            logging.error(f"User already exists")
-            user = await get_user_by_email(db_session, email)
-            if user:
-                return user
-        raise e
+
+    user = User(email=email, password=password, fullname=fullname)
+    db_session.add(user)
+    await db_session.commit()
+
     return serialize_user(user)
 
 
@@ -54,9 +47,6 @@ def serialize_user(user: User) -> BaseUserPrivate:
         deleted=user.deleted,
     )
     return base_user
-
-
-def deserialize_user(user: BaseUserPrivate | BaseUser) -> User: ...
 
 
 def trim_user(user: BaseUserPrivate) -> BaseUser:

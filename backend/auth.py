@@ -14,11 +14,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def create_access_token(
-    data: dict, expires_delta: timedelta | None = None
-) -> str:
-    exp = (
-        datetime.now(timezone.utc) + expires_delta
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    exp = datetime.now(timezone.utc) + (
+        expires_delta
         if expires_delta
         else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
@@ -28,11 +26,11 @@ async def create_access_token(
     return encoded_jwt
 
 
-async def verify_pwd(plain: str, hashed: str) -> bool:
+def verify_pwd(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-async def hash_pwd(plain: str) -> str:
+def hash_pwd(plain: str) -> str:
     return pwd_context.hash(plain)
 
 

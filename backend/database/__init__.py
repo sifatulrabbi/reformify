@@ -17,7 +17,9 @@ Base = declarative_base()
 class DatabaseSessionManager:
     def __init__(self, url: str, engine_kwargs: dict[str, Any] = {}):
         self._engine = create_async_engine(url, **engine_kwargs)
-        self._sessionmaker = async_sessionmaker(bind=self._engine)
+        self._sessionmaker = async_sessionmaker(
+            bind=self._engine, expire_on_commit=False
+        )
 
     async def close(self):
         if not self._engine:
