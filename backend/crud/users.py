@@ -1,7 +1,4 @@
-import logging
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
-from asyncpg.exceptions import UniqueViolationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.user import BaseUser, BaseUserPrivate, User
 
