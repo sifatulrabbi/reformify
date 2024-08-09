@@ -6,53 +6,29 @@ if __name__ == "__main__":
     sys.path.append(parent_dir)
 
 
-import unittest
-from services.users import UsersService
-from database import get_db_session
+import asyncio
+from database import sessionmanager
+from crud.users import create_user, get_user_by_email, get_user_by_id
 
 
-db = get_db_session()
-service = UsersService(db)
-payload = {
-    "email": "test.user@sifatulrabbi.com",
-    "password": "password",
-    "fullname": "Test User 1",
+mock_user = {
+    "email": "test.user3@gmail.com",
+    "password": "test.user3@gmail.com",
+    "fullname": "test user 3",
 }
 
 
-class TestUsersService(unittest.IsolatedAsyncioTestCase):
-    async def test_create_user_with_correct_payload(self):
-        try:
-            user = await service.create_new_user(payload)
-            assert user is not None
-            assert user.email == payload["email"]
-        except Exception as e:
-            assert e is None
-        finally:
-            print("test_create_user_with_correct_payload: success")
+async def run_tests():
+    async with sessionmanager.session() as session:
+        created_user = await create_user(session, mock_user)
+        user_by_email = await get_user_by_email(session, mock_user["email"])
+        user_by_id = await get_user_by_id(session, created_user.id)
 
-    async def test_create_user_with_incorrect_payload(self):
-        self.skipTest("future")
-        p = payload.copy()
-        p["password"] = ""
-        try:
-            user = await service.create_new_user(p)
-            assert user is None
-        except Exception as e:
-            assert e is not None
-        finally:
-            print("test_create_user_with_incorrect_payload: success")
-
-    async def test_get_user_by_id(self): ...
-
-    async def test_get_user_by_email(self): ...
-
-    async def test_update_user(self):
-        pass
-
-    async def test_delete_user(self):
-        pass
+        assert created_user is not None
+        assert user_by_email is not None
+        assert user_by_id is not None
+        assert created_user.id == user_by_email.id and user_by_email.id == user_by_id.id
 
 
 if __name__ == "__main__":
-    unittest.main()
+    asyncio.run(run_tests())
