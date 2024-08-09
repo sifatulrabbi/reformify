@@ -38,4 +38,4 @@ class BaseUser(BaseModel):
 
 class BaseUserPrivate(BaseUser):
     password: str
-    deleted: bool
+    deleted: bool = Field(False)

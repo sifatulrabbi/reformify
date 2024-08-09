@@ -59,4 +59,5 @@ def serialize_user(user: User) -> BaseUserPrivate:
 def deserialize_user(user: BaseUserPrivate | BaseUser) -> User: ...
 
 
-def trim_user(user: BaseUserPrivate) -> BaseUser: ...
+def trim_user(user: BaseUserPrivate) -> BaseUser:
+    return BaseUser(email=user.email, id=user.id, fullname=user.fullname)
