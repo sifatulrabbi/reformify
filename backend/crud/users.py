@@ -1,10 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 from database.user import User
 
 
 async def get_user_by_id(db_session: AsyncSession, user_id: str) -> User:
-    user = await db_session.scalar(select(User).where(User.id == user_id))
+    user = await db_session.scalar(
+        select(User).options(joinedload(User.sections)).where(User.id == user_id)
+    )
     return user
 
 

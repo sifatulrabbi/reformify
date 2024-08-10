@@ -39,6 +39,8 @@ class User(Base):
             "id": self.id,
             "email": self.email,
             "fullname": self.fullname,
+            "sections": self.sections,
+            "created_at": self.created_at,
         }
 
     def to_dict_full(self) -> dict:
@@ -65,12 +67,12 @@ class BaseUser(BaseModel):
     id: UUID
     email: str
     fullname: str
+    created_at: datetime
 
 
 class BaseUserPrivate(BaseUser):
     password: str
     deleted: bool = Field(False)
-    created_at: datetime
     updated_at: datetime
 
 
