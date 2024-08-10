@@ -1,6 +1,6 @@
 from typing import Annotated
 import jwt
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Header, Request
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from configs import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -36,11 +36,13 @@ def hash_pwd(plain: str) -> str:
     return pwd_context.hash(plain)
 
 
-async def get_current_user(request: Request, db_session: DBSessionDep) -> BaseUser:
-    auth_token = request.headers.get("Authorization")
-    if not auth_token:
+async def get_current_user(
+    authorization: Annotated[str, Header()], db_session: DBSessionDep
+) -> BaseUser:
+    if not authorization or not isinstance(authorization, str):
         raise HTTPException(401, "No access token found")
-    [token_type, token] = auth_token.split(" ", 1)
+
+    [token_type, token] = authorization.split(" ", 1)
     if token_type != "Bearer":
         raise HTTPException(401, "Invalid access token type")
     if not token:
@@ -53,7 +55,9 @@ async def get_current_user(request: Request, db_session: DBSessionDep) -> BaseUs
     except ExpiredSignatureError:
         raise HTTPException(401, "Access token has expired!")
     except InvalidTokenError as e:
-        raise HTTPException(401, str(e))
+        raise HTTPException(401, f"Invalid access token: {e}")
+    except Exception as e:
+        raise HTTPException(500, str(e))
 
     id = payload.get("sub")
     user = await get_user_by_id(db_session, id)
@@ -67,3 +71,4 @@ def require_auth(roles: list[str] = ["user"]):
 
 
 RequiredAuth = Annotated[BaseUser, require_auth()]
+# RequiredAuth = lambda x=["user"]: Annotated[BaseUser, require_auth(x)]
