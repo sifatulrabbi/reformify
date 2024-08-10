@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+from typing import Annotated
+from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from database import DBSessionDep
-from crud.users import get_user_by_id, trim_user
+from crud.users import get_user_by_id
+from auth import RequiredAuth
+from database.user import BaseUser
 
 user_router = APIRouter(
     prefix="/users",
@@ -11,11 +14,5 @@ user_router = APIRouter(
 
 
 @user_router.get("/{user_id}")
-async def get_user_details(user_id: str, db_session: DBSessionDep):
-    try:
-        user = await get_user_by_id(db_session, user_id)
-    except Exception as e:
-        raise HTTPException(500, str(e))
-    if not user:
-        raise HTTPException(404, "User not found or invalid user id")
-    return {"user": trim_user(user)}
+async def get_user_details(user_id: str, db_session: DBSessionDep, user: RequiredAuth):
+    return {"user": user}

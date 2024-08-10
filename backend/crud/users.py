@@ -1,25 +1,19 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.user import BaseUser, BaseUserPrivate, User
+from database.user import User
 
 
-async def get_user_by_id(
-    db_session: AsyncSession, user_id: str
-) -> BaseUserPrivate | None:
+async def get_user_by_id(db_session: AsyncSession, user_id: str) -> User:
     user = await db_session.scalar(select(User).where(User.id == user_id))
-    return None if user is None else serialize_user(user)
+    return user
 
 
-async def get_user_by_email(
-    db_session: AsyncSession, email: str
-) -> BaseUserPrivate | None:
+async def get_user_by_email(db_session: AsyncSession, email: str) -> User:
     user = await db_session.scalar(select(User).where(User.email == email))
-    return None if user is None else serialize_user(user)
+    return user
 
 
-async def create_user(
-    db_session: AsyncSession, data: dict[str, str]
-) -> BaseUserPrivate:
+async def create_user(db_session: AsyncSession, data: dict[str, str]) -> User:
     email = data.get("email")
     password = data.get("password")
     fullname = data.get("fullname")
@@ -32,19 +26,4 @@ async def create_user(
     db_session.add(user)
     await db_session.commit()
 
-    return serialize_user(user)
-
-
-def serialize_user(user: User) -> BaseUserPrivate:
-    base_user = BaseUserPrivate(
-        id=user.id,
-        email=user.email,
-        password=user.password,
-        fullname=user.fullname,
-        deleted=user.deleted,
-    )
-    return base_user
-
-
-def trim_user(user: BaseUserPrivate) -> BaseUser:
-    return BaseUser(email=user.email, id=user.id, fullname=user.fullname)
+    return user

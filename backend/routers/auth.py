@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from crud.users import create_user, get_user_by_email, trim_user
+from crud.users import create_user, get_user_by_email
 from database import DBSessionDep
 from auth import hash_pwd, verify_pwd, create_access_token
 
@@ -34,10 +34,10 @@ async def login(payload: LoginPayload, db_session: DBSessionDep):
     if not verify_pwd(payload.password, user.password):
         raise HTTPException(401, "Incorrect password please try again.")
 
-    access_token = create_access_token({"sub": user.id, "email": user.email})
+    access_token = create_access_token({"sub": str(user.id), "email": user.email})
 
     return {
-        "user": trim_user(user),
+        "user": user.to_dict(),
         "access_token": access_token,
     }
 
@@ -68,6 +68,6 @@ async def register(payload: RegisterPayload, db_session: DBSessionDep):
     access_token = create_access_token({"sub": user.id, "email": user.email})
 
     return {
-        "user": trim_user(user),
+        "user": user.to_dict(),
         "access_token": access_token,
     }
