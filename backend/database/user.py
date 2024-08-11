@@ -7,11 +7,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from . import Base
 
 
-class UserCareer(BaseModel):
+class BaseUserCareer(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
-    user_id: UUID
     title: str
     company: str
     company_location: str
@@ -21,6 +19,11 @@ class UserCareer(BaseModel):
     description: list[str] = Field(default=[])
     start_date: datetime
     end_date: datetime | None = Field(default=None)
+
+
+class UserCareer(BaseUserCareer):
+    id: UUID
+    user_id: UUID
 
 
 class User(BaseModel):
@@ -72,7 +75,7 @@ class UserModel(Base):
             "id": self.id,
             "email": self.email,
             "fullname": self.fullname,
-            "sections": self.sections,
+            "careers": self.careers,
             "created_at": self.created_at,
         }
 
@@ -81,6 +84,7 @@ class UserModel(Base):
             "id": self.id,
             "email": self.email,
             "fullname": self.fullname,
+            "careers": self.careers,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "deleted": self.deleted,
@@ -111,9 +115,45 @@ class UserCareerModel(Base):
     job_type: Mapped[str] = mapped_column(String(length=50), nullable=False)
     job_location: Mapped[str] = mapped_column(String(length=100), nullable=False)
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    end_date: Mapped[datetime | None] = mapped_column(DateTime, default=null)
+    end_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     company_description: Mapped[str] = mapped_column(String(length=400))
     description: Mapped[list[str]] = mapped_column(ARRAY(String))
+
+    def __init__(
+        self,
+        *,
+        user_id: UUID,
+        title: str,
+        company: str,
+        job_type: str,
+        start_date: datetime,
+        description: list[str],
+        company_description: str = "",
+        job_location: str = "",
+        company_location: str = "",
+        end_date: datetime | None = None,
+    ):
+        if (
+            not user_id
+            or not title
+            or not company
+            or not job_type
+            or not description
+            or not company_location
+            or not start_date
+        ):
+            raise Exception("Can't create a new career entry with insufficiant data")
+
+        self.user_id = user_id
+        self.title = title
+        self.company = company
+        self.company_location = company_location
+        self.job_type = job_type
+        self.job_location = job_location
+        self.start_date = start_date
+        self.end_date = end_date
+        self.description = description
+        self.company_description = company_description
 
     def to_dict(self):
         return {

@@ -65,7 +65,7 @@ async def register(payload: RegisterPayload, db_session: DBSessionDep):
     except Exception as e:
         raise HTTPException(500, f"Unable to create the user due to: {e}")
 
-    access_token = create_access_token({"sub": user.id, "email": user.email})
+    access_token = create_access_token({"sub": str(user.id), "email": user.email})
 
     return {
         "user": user.to_dict(),

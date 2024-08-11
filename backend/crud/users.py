@@ -7,7 +7,7 @@ from database.user import UserModel
 async def get_user_by_id(db_session: AsyncSession, user_id: str) -> UserModel:
     user = await db_session.scalar(
         select(UserModel)
-        .options(joinedload(UserModel.sections))
+        .options(joinedload(UserModel.careers))
         .where(UserModel.id == user_id)
     )
     return user
@@ -16,7 +16,7 @@ async def get_user_by_id(db_session: AsyncSession, user_id: str) -> UserModel:
 async def get_user_by_email(db_session: AsyncSession, email: str) -> UserModel:
     user = await db_session.scalar(
         select(UserModel)
-        .options(joinedload(UserModel.sections))
+        .options(joinedload(UserModel.careers))
         .where(UserModel.email == email)
     )
     return user
