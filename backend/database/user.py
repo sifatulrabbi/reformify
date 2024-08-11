@@ -2,12 +2,44 @@ from typing import List
 from uuid import uuid4, UUID
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import DateTime, String, func, UUID as SqlUUID, ForeignKey
+from sqlalchemy import ARRAY, DateTime, String, func, UUID as SqlUUID, ForeignKey, null
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from . import Base
 
 
-class User(Base):
+class UserCareer(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UUID
+    title: str
+    company: str
+    company_location: str
+    job_type: str
+    job_location: str
+    company_description: str
+    description: list[str] = Field(default=[])
+    start_date: datetime
+    end_date: datetime | None = Field(default=None)
+
+
+class User(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    email: str
+    fullname: str
+    created_at: datetime
+    careers: list[UserCareer]
+
+
+class UserPrivate(User):
+    password: str
+    deleted: bool = Field(False)
+    updated_at: datetime
+
+
+class UserModel(Base):
     __tablename__ = "users"
     __table_args__ = {"schema": "reformify"}
 
@@ -23,7 +55,8 @@ class User(Base):
     fullname: Mapped[str] = mapped_column(String(100), nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     deleted: Mapped[bool] = mapped_column(default=False)
-    sections: Mapped[List["ProfileSection"]] = relationship(back_populates="user")
+    # sections: Mapped[List["ProfileSection"]] = relationship(back_populates="user")
+    careers: Mapped[List["UserCareerModel"]] = relationship(back_populates="user")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now()
@@ -55,68 +88,47 @@ class User(Base):
         }
 
     def serialize(self):
-        return BaseUser(**self.to_dict())
+        return User(**self.to_dict())
 
     def serialize_full(self):
-        return BaseUserPrivate(**self.to_dict_full())
+        return UserPrivate.model_validate(self.to_dict_full())
 
 
-class BaseUser(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    email: str
-    fullname: str
-    created_at: datetime
-
-
-class BaseUserPrivate(BaseUser):
-    password: str
-    deleted: bool = Field(False)
-    updated_at: datetime
-
-
-class ProfileSection(Base):
-    __tablename__ = "profile_sections"
+class UserCareerModel(Base):
+    __tablename__ = "careers"
     __table_args__ = {"schema": "reformify"}
 
     id: Mapped[UUID] = mapped_column(
-        SqlUUID(as_uuid=True),
-        primary_key=True,
-        unique=True,
-        default=uuid4,
+        SqlUUID(as_uuid=True), primary_key=True, unique=True, default=uuid4
     )
-    title: Mapped[str] = mapped_column(String(length=256), nullable=False)
     user_id: Mapped[UUID] = mapped_column(
         SqlUUID(as_uuid=True), ForeignKey("reformify.users.id"), nullable=False
     )
-    user: Mapped[List["User"]] = relationship(back_populates="sections")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now(), onupdate=func.now()
-    )
-
-    def __init__(self, *, user_id: UUID, title: str):
-        self.title = title
-        self.user_id = user_id
+    user: Mapped["UserModel"] = relationship(back_populates="careers")
+    title: Mapped[str] = mapped_column(String(length=100), nullable=False)
+    company: Mapped[str] = mapped_column(String(length=100), nullable=False)
+    company_location: Mapped[str] = mapped_column(String(length=100), nullable=False)
+    job_type: Mapped[str] = mapped_column(String(length=50), nullable=False)
+    job_location: Mapped[str] = mapped_column(String(length=100), nullable=False)
+    start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    end_date: Mapped[datetime | None] = mapped_column(DateTime, default=null)
+    company_description: Mapped[str] = mapped_column(String(length=400))
+    description: Mapped[list[str]] = mapped_column(ARRAY(String))
 
     def to_dict(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
             "title": self.title,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "company": self.company,
+            "company_location": self.company_location,
+            "job_type": self.job_type,
+            "job_location": self.job_location,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "company_description": self.company_description,
+            "description": self.description,
         }
 
     def serialize(self):
-        return BaseProfileSection(**self.to_dict())
-
-
-class BaseProfileSection(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    user_id: UUID
-    title: str
-    created_at: datetime
+        return UserCareer.model_validate(self.to_dict())

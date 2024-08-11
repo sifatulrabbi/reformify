@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from datetime import timedelta, timezone, datetime
 from crud.users import get_user_by_id
 from database import DBSessionDep
-from database.user import BaseUser
+from database.user import User
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -72,7 +72,7 @@ def validate_access_token(authorization: Annotated[str, Header()]) -> AccessToke
 
 async def get_current_user(
     authorization: Annotated[str, Header()], db_session: DBSessionDep
-) -> BaseUser:
+) -> User:
     if not authorization or not isinstance(authorization, str):
         raise HTTPException(401, "No access token found")
 
@@ -105,4 +105,4 @@ def require_auth(skip_fetch=False):
 
 
 RequiredAuth = Annotated[AccessToken, require_auth(True)]
-RequiredUser = Annotated[BaseUser, require_auth(False)]
+RequiredUser = Annotated[User, require_auth(False)]

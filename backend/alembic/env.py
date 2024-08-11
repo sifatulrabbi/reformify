@@ -1,4 +1,4 @@
-from database.user import User
+from database.user import UserModel
 from database.profile_section import ProfileSection
 from tests.test_sql_relations import UserProfile, UserCareer
 
