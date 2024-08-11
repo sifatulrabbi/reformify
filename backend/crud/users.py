@@ -12,7 +12,9 @@ async def get_user_by_id(db_session: AsyncSession, user_id: str) -> User:
 
 
 async def get_user_by_email(db_session: AsyncSession, email: str) -> User:
-    user = await db_session.scalar(select(User).where(User.email == email))
+    user = await db_session.scalar(
+        select(User).options(joinedload(User.sections)).where(User.email == email)
+    )
     return user
 
 
