@@ -1,6 +1,4 @@
-from database.user import UserModel
-from database.profile_section import ProfileSection
-from tests.test_sql_relations import UserProfile, UserCareer
+from database.user import UserModel, UserCareerModel
 
 import asyncio
 from logging.config import fileConfig
