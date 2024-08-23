@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import AuthProvider from "@/providers/AuthProvider";
+import { getServerSession } from "next-auth";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -14,16 +15,18 @@ export const metadata: Metadata = {
     description: "Reformify - Easier job search",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const session = await getServerSession();
+
     return (
         <html lang="en">
-            <AuthProvider>
-                <body className={roboto.className}>{children}</body>
-            </AuthProvider>
+            <body className={roboto.className}>
+                <AuthProvider session={session}>{children}</AuthProvider>
+            </body>
         </html>
     );
 }

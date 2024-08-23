@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "short_name": "Reformify",
+  "name": "Reformify",
+  "description": "Reformify",
+  "version": "1.0",
+  "icons": {
+    "16": "favicon.ico",
+    "48": "favicon.ico",
+    "192": "logo192.png"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Reformify chrome extension"
+  },
+  "permissions": []
+}

@@ -1,7 +1,13 @@
 "use client";
+import { useEffect } from "react";
 import { BsKeyFill, BsEnvelopeFill, BsPersonFill } from "react-icons/bs";
+import { signOut } from "next-auth/react";
 
 export default function RegistrationForm() {
+    useEffect(() => {
+        signOut({ redirect: false });
+    }, []);
+
     return (
         <form
             action="submit"

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import RegistrationForm from "@/components/RegistrationForm";
 
-export default function RegistrationPage() {
+export default async function RegistrationPage() {
     return (
         <main className="w-full flex flex-col justify-center items-center min-h-screen">
             <h2 className="text-2xl mb-8">
