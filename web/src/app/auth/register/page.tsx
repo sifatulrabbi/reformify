@@ -11,7 +11,7 @@ export default async function RegistrationPage() {
             <RegistrationForm />
             <div className="text-md">
                 Already have an account?{" "}
-                <Link href="/" className="dui-link dui-link-primary">
+                <Link href="/auth/login" className="dui-link dui-link-primary">
                     Login
                 </Link>
             </div>

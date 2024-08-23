@@ -85,7 +85,10 @@ export default function LoginForm() {
             </form>
             <div className="text-md">
                 Don&apos;t have an account?{" "}
-                <Link href="/register" className="dui-link dui-link-primary">
+                <Link
+                    href="/auth/register"
+                    className="dui-link dui-link-primary"
+                >
                     Register
                 </Link>
             </div>
