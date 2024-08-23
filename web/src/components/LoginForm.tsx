@@ -34,7 +34,7 @@ export default function LoginForm() {
     if (loading)
         return (
             <div className="w-full flex flex-col gap-6 p-6 max-w-[90%] md:max-w-xl items-center">
-                <div className="dui-loading dui-loading-lg"></div>
+                <div className="dui-loading dui-loading-infinity dui-loading-lg"></div>
                 Please wait...
             </div>
         );
@@ -42,7 +42,10 @@ export default function LoginForm() {
     return (
         <div className="w-full flex flex-col gap-6 p-6 max-w-[90%] md:max-w-xl items-center">
             {status === "authenticated" && session && session.user && (
-                <Link href="#" className="dui-btn dui-btn-primary font-normal">
+                <Link
+                    href="/profile"
+                    className="dui-btn dui-btn-primary font-normal"
+                >
                     Continue as{" "}
                     <span className="font-bold">
                         {session.user.name || session.user.email}
