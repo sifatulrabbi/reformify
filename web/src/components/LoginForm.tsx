@@ -27,17 +27,14 @@ export default function LoginForm() {
         }
     }
 
-    async function signInWithGithub() {
-        await signIn("github");
-    }
-
-    if (loading)
+    if (loading) {
         return (
             <div className="w-full flex flex-col gap-6 p-6 max-w-[90%] md:max-w-xl items-center">
                 <div className="dui-loading dui-loading-infinity dui-loading-lg"></div>
                 Please wait...
             </div>
         );
+    }
 
     return (
         <div className="w-full flex flex-col gap-6 p-6 max-w-[90%] md:max-w-xl items-center">
@@ -98,7 +95,7 @@ export default function LoginForm() {
                 <hr className="w-full border-gray-700" />
             </div>
             <button
-                onClick={signInWithGithub}
+                onClick={() => signIn("github", { callbackUrl: "/profile" })}
                 type="button"
                 className="dui-btn w-full"
             >

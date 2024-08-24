@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-
 export default function ProfilePage() {
     return (
         <main className="w-full flex flex-col justify-start items-start p-6">

@@ -7,10 +7,12 @@ if (!secret) {
 }
 
 export const authOptions: AuthOptions = {
+    session: {
+        strategy: "jwt",
+    },
     pages: {
         signIn: "/auth/login",
     },
-
     providers: [
         GithubProvider({
             clientId: process.env.GITHUB_CLIENT_ID ?? "",
