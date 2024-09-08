@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import AuthProvider from "@/providers/AuthProvider";
+import Navbar from "@/components/Navbar";
 import { getServerSession } from "next-auth";
 import "./globals.css";
 
@@ -23,9 +24,12 @@ export default async function RootLayout({
     const session = await getServerSession();
 
     return (
-        <html lang="en">
-            <body className={roboto.className}>
-                <AuthProvider session={session}>{children}</AuthProvider>
+        <html lang="en" data-theme="dark">
+            <body className={`${roboto.className} pt-[64px]`}>
+                <AuthProvider session={session}>
+                    <Navbar />
+                    {children}
+                </AuthProvider>
             </body>
         </html>
     );

@@ -12,6 +12,7 @@ from main import app
 
 client = TestClient(app)
 
+
 class TestLoginRoute(unittest.TestCase):
     def test_with_correct_payload(self):
         payload = {
@@ -49,6 +50,7 @@ class TestLoginRoute(unittest.TestCase):
         data = res.json()
         assert data is not None
         assert isinstance(data.get("message"), str)
+
 
 class TestRegisterRoute(unittest.TestCase):
     def test_with_correct_payload(self):
@@ -115,6 +117,7 @@ class TestRegisterRoute(unittest.TestCase):
         data = res.json()
         assert data is not None
         assert isinstance(data.get("message"), str)
+
 
 if __name__ == "__main__":
     unittest.main(defaultTest="TestLoginRoute")
