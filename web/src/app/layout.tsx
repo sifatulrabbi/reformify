@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import AuthProvider from "@/providers/AuthProvider";
 import Navbar from "@/components/Navbar";
 import { getServerSession } from "next-auth";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -28,6 +29,7 @@ export default async function RootLayout({
             <body className={`${roboto.className} pt-[64px]`}>
                 <AuthProvider session={session}>
                     <Navbar />
+                    <PageBreadcrumbs />
                     {children}
                 </AuthProvider>
             </body>
