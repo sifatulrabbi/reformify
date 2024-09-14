@@ -20,13 +20,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, title="Reformify", debug=True)
-sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[])
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=["*"], logger=True)
 
 # app.include_router(auth_router, prefix="/reformify/api")
 app.include_router(user_router, prefix="/reformify/api")
 app.mount(
     "/",
-    socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/reformify/api/socket.io"),
+    socketio.ASGIApp(
+        sio,
+        other_asgi_app=app,
+        socketio_path="/reformify/api/socket.io",
+    ),
 )
 connected_clients = {}
 
@@ -35,7 +39,11 @@ connected_clients = {}
 async def connect(sid: str, environ, auth):
     logging.info(f"Client connected: {sid}")
     connected_clients[sid] = {"username": None}
-    await sio.emit("message", f"Client '{sid}' connected.", to=sid)
+    await sio.emit(
+        "message",
+        {"message": f"Client '{sid}' connected.", "sid": sid},
+        to=sid,
+    )
 
 
 @sio.event
@@ -48,12 +56,17 @@ async def disconnect(sid: str):
 async def set_username(sid: str, data: dict[str, Any]):
     username = data.get("username")
     if not username:
-        await sio.emit("message", "No username provided.", to=sid)
+        await sio.emit("message", {"message": "No username provided."}, to=sid)
         return
     logging.info(f"setting username: {username}")
     connected_clients[sid]["username"] = username
-    await sio.emit("message", f"{username} has joined the chat.", skip_sid=sid)
-    await sio.emit("message", f"You are now known as {username}.", to=sid)
+    logging.info("username updated")
+    # await sio.emit(
+    #     "message",
+    #     {"message": f"{username} has joined the chat."},
+    #     skip_sid=sid,
+    # )
+    # await sio.emit("message", {"message": f"You are now known as '{username}'"}, to=sid)
 
 
 @sio.event
@@ -61,11 +74,14 @@ async def chat_message(sid, data: dict[str, Any]):
     username = connected_clients[sid].get("username", "Anonymous")
     message = data.get("message")
     if not message:
-        await sio.emit("message", "Empty message received.", to=sid)
+        await sio.emit("message", {"message": "Empty message received."}, to=sid)
         return
-    full_message = f"{username}: {message}"
-    logging.info(full_message)
-    await sio.emit("chat_message", full_message)
+    logging.info(f"from [{username}]: '{message}'")
+    await sio.emit(
+        "chat_message",
+        {"from": username, "message": message},
+        skip_sid=sid,
+    )
 
 
 # Example FastAPI endpoint
