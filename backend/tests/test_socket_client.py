@@ -9,8 +9,6 @@ clients: list[AsyncClient] = []
 delays: list[int] = []
 connections: int = 0
 lock = threading.Lock()
-clients_count = 240
-msg_per_client = 100
 
 
 async def handle_message(data: str):
@@ -28,7 +26,7 @@ async def send_message(client: AsyncClient, ts: datetime):
         return False
 
 
-async def main():
+async def main(clients_count: int, msg_per_client: int, keepalive: int = 10):
     for _ in range(clients_count):
         c = AsyncClient()
         c.on("test_message", handle_message)
@@ -39,6 +37,7 @@ async def main():
             await client.connect(
                 url="http://localhost:8000",
                 socketio_path="/reformify/api/socket.io",
+                headers={"Authorization": "Bearer helloworld"},
             )
             with lock:
                 global connections
@@ -60,7 +59,7 @@ async def main():
         ]
     await asyncio.gather(*taskgrp)
 
-    await asyncio.sleep(60)
+    await asyncio.sleep(keepalive)
     for client in clients:
         await client.disconnect()
 
@@ -72,6 +71,6 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        asyncio.run(main(1, 0, 2))
     except:
         pass

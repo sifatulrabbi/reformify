@@ -21,7 +21,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, title="Reformify", debug=True)
-sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=["*"], logger=True)
+sio = socketio.AsyncServer(
+    async_mode="asgi",
+    cors_allowed_origins=["*"],
+    always_connect=False,
+    transports=["websocket", "polling"],
+    logger=True,
+)
 
 # app.include_router(auth_router, prefix="/reformify/api")
 app.include_router(user_router, prefix="/reformify/api")
@@ -33,24 +39,27 @@ app.mount(
         socketio_path="/reformify/api/socket.io",
     ),
 )
-connected_clients = {}
 
 
 @sio.event
-async def connect(sid: str, environ, auth):
-    logging.info(f"Client connected: {sid}")
-    connected_clients[sid] = {"username": None}
+async def connect(sid: str, environ: dict[str, Any], auth: Any):
+    print(auth, environ.keys())
+    authtoken = environ.get("HTTP_AUTHORIZATION", None)
+    if not authtoken:
+        return False
+    await sio.save_session(sid, {"username": None})
     await sio.emit(
         "message",
         {"message": f"Client '{sid}' connected.", "sid": sid},
         to=sid,
     )
+    return True
 
 
 @sio.event
 async def disconnect(sid: str):
     logging.info(f"Client disconnected: {sid}")
-    connected_clients.pop(sid, None)
+    await sio.save_session(sid, None)
 
 
 @sio.event
@@ -66,19 +75,16 @@ async def set_username(sid: str, data: dict[str, Any]):
         await sio.emit("message", {"message": "No username provided."}, to=sid)
         return
     logging.info(f"setting username: {username}")
-    connected_clients[sid]["username"] = username
+    siosession: dict[str, Any] = await sio.get_session(sid)
+    siosession["username"] = username
+    await sio.save_session(sid, siosession)
     logging.info("username updated")
-    # await sio.emit(
-    #     "message",
-    #     {"message": f"{username} has joined the chat."},
-    #     skip_sid=sid,
-    # )
-    # await sio.emit("message", {"message": f"You are now known as '{username}'"}, to=sid)
 
 
 @sio.event
 async def chat_message(sid, data: dict[str, Any]):
-    username = connected_clients[sid].get("username", "Anonymous")
+    siosession: dict[str, Any] = await sio.get_session(sid)
+    username = siosession.get("username", "Anonymous")
     message = data.get("message")
     if not message:
         await sio.emit("message", {"message": "Empty message received."}, to=sid)
