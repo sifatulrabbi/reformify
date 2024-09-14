@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-PORT = os.getenv("PORT", None)
+PORT = os.getenv("PORT", "8000")
 DB_HOST = os.getenv("DB_HOST", None)
 DB_NAME = os.getenv("DB_NAME", None)
 DB_PASS = os.getenv("DB_PASS", None)
@@ -22,8 +22,6 @@ if not DB_HOST:
     raise Exception("DB_HOST env is required")
 if not DB_NAME:
     raise Exception("DB_NAME env is required")
-if not DB_PASS:
-    raise Exception("DB_PASS env is required")
 if not DB_USER:
     raise Exception("DB_USER env is required")
 if not DB_DRIVER:

@@ -1,5 +1,5 @@
-from typing import Annotated
 import jwt
+from typing import Annotated
 from fastapi import Depends, HTTPException, Header
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
