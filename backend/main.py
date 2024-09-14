@@ -3,6 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any
 from fastapi import FastAPI
+from socketio.async_aiopika_manager import asyncio
 from database import sessionmanager
 from modules.users.router import user_router
 
@@ -50,6 +51,12 @@ async def connect(sid: str, environ, auth):
 async def disconnect(sid: str):
     logging.info(f"Client disconnected: {sid}")
     connected_clients.pop(sid, None)
+
+
+@sio.event
+async def test_message(sid: str, data: str):
+    await asyncio.sleep(2)
+    await sio.emit("test_message", data, sid)
 
 
 @sio.event

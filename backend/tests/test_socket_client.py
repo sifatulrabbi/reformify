@@ -1,68 +1,67 @@
 import asyncio
-import socketio
-from sqlalchemy import except_
+import threading
+import statistics
+from socketio.async_client import AsyncClient
+from datetime import datetime
 
 
-sio = socketio.AsyncClient()
+delays: list[int] = []
+lock = threading.Lock()
 
 
-@sio.event
-async def connect():
-    pass
+async def handle_message(data: str):
+    delay = datetime.now() - datetime.fromisoformat(data)
+    with lock:
+        delays.append(delay.seconds)
 
 
-# @sio.event
-# async def accepting_profile(sid: str):
-#     print("-- setting username --")
-#     await sio.emit("set_username", {"username": sid})
-
-
-@sio.event
-async def disconnect():
-    print("-- Disconnected from server --")
-
-
-@sio.event
-async def message(data: dict[str, str]):
-    print(f">> {data.get('message')}")
-    # if data.get("sid", None):
-    #     print("-- setting username --")
-    #     try:
-    #         await sio.emit(event="set_username", data={"username": data.get("sid")})
-    #     except Exception as e:
-    #         print("error while setting username", e)
-
-
-@sio.event
-async def chat_message(data):
-    print(f"[{data.get('from')}]: {data.get('message')}")
-
-
-async def send_messages():
-    while True:
-        message = await aio_input('Enter message (type "q" to exit): ')
-        if message.lower() == "q":
-            break
-        await sio.emit("chat_message", {"message": message})
-
-
-async def aio_input(prompt):
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, input, prompt)
+async def send_message(client: AsyncClient, ts: datetime):
+    try:
+        await client.emit("test_message", ts.isoformat())
+        return True
+    except Exception as e:
+        print("Error while sending message:", e)
+        return False
 
 
 async def main():
-    try:
-        await sio.connect(
-            "http://localhost:8000", socketio_path="/reformify/api/socket.io"
-        )
-        await send_messages()
-        # await sio.wait()
-        await sio.disconnect()
-        exit()
-    except:
-        exit()
+    clients: list[AsyncClient] = []
+
+    for _ in range(20):
+        c = AsyncClient()
+        c.on("test_message", handle_message)
+        clients.append(c)
+
+    for client in clients:
+        try:
+            await client.connect(
+                url="http://localhost:8000",
+                socketio_path="/reformify/api/socket.io",
+            )
+        except Exception as e:
+            print("error while connecting to socket:", e)
+            exit()
+
+    taskgrp = []
+    i = 50
+    while i > 0:
+        i -= 1
+        ts = datetime.now()
+        [
+            taskgrp.append(asyncio.create_task(send_message(client, ts)))
+            for client in clients
+        ]
+    await asyncio.gather(*taskgrp)
+
+    await asyncio.sleep(5)
+    for client in clients:
+        await client.disconnect()
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+    print(f"messages received={len(delays)} expected={20*50}")
+    print("max delay:", max(delays))
+    print("min delay:", min(delays))
+    print("average delay", statistics.mean(delays))
