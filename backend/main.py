@@ -63,41 +63,22 @@ async def disconnect(sid: str):
 
 
 @sio.event
+async def message(sid: str, data: dict[str, str]):
+    usersession = sio.get_session(sid)
+    if not usersession:
+        await sio.disconnect(sid)
+        return
+    # handle request
+    logging.info(f"handling message from: {sid}")
+    print(data, end="\n\n")
+
+
+@sio.event
 async def test_message(sid: str, data: str):
     await asyncio.sleep(2)
     await sio.emit("test_message", data, sid)
 
 
-@sio.event
-async def set_username(sid: str, data: dict[str, Any]):
-    username = data.get("username")
-    if not username:
-        await sio.emit("message", {"message": "No username provided."}, to=sid)
-        return
-    logging.info(f"setting username: {username}")
-    siosession: dict[str, Any] = await sio.get_session(sid)
-    siosession["username"] = username
-    await sio.save_session(sid, siosession)
-    logging.info("username updated")
-
-
-@sio.event
-async def chat_message(sid, data: dict[str, Any]):
-    siosession: dict[str, Any] = await sio.get_session(sid)
-    username = siosession.get("username", "Anonymous")
-    message = data.get("message")
-    if not message:
-        await sio.emit("message", {"message": "Empty message received."}, to=sid)
-        return
-    logging.info(f"from [{username}]: '{message}'")
-    await sio.emit(
-        "chat_message",
-        {"from": username, "message": message},
-        skip_sid=sid,
-    )
-
-
-# Example FastAPI endpoint
 @app.get("/health")
 async def get_status():
     return {"status": "Server is running"}
