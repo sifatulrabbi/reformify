@@ -1,4 +1,7 @@
 import socketio
+import aiofiles
+import tempfile
+from uuid import uuid4
 from typing import Any
 
 __all__ = ["sio"]
@@ -18,5 +21,8 @@ async def connect(sid: sid, environ: dict[str, Any], auth: Any) -> bool:
 
 
 @sio.event
-async def talk(sid: str, audiodata: bytes):
-    pass
+async def transcribe_chunk(sid: str, audiodata: bytes):
+    filename = sid + "-" + str(uuid4())
+    print(filename)
+    async with tempfile.NamedTemporaryFile(suffix=".mp3", delete_on_close=True) as tf:
+        pass

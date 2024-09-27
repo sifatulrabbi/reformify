@@ -18,7 +18,7 @@ model = whisper.load_model("medium")
 
 async def test_whisper():
     # filepath = "./tests/assets/simple-recording-01.m4a"
-    filepath = "./tests/assets/eng-us-linguistics_mp3.zip"
+    filepath = "./tests/assets/Conversation-with-24-year-old-male-Virginia_afccal000226_003_00-10-17.mp3"
     result = model.transcribe(filepath, verbose=True)
     print("Whisper result:", result)
     return result.get("text") if result else None
