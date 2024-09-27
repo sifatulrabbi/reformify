@@ -65,9 +65,9 @@ const AudioRecorder: React.FC = () => {
   }, [isRecording]);
 
   return (
-    <div>
+    <div className="w-full flex items-center justify-center">
       {isRecording ? (
-        <div>
+        <div className="flex flex-col">
           <p>Recording audio...</p>
           <button onClick={stopRecording}>Stop Recording</button>
         </div>
