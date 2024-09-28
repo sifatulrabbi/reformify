@@ -1,5 +1,5 @@
 from abc import ABC, abstractproperty
-from langchain.prompts.chat import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from typing import Dict, Any
 
 

@@ -3,8 +3,12 @@ All the tools for the Agent to perform different tasks based on the user's reque
 """
 
 from typing import List
-from langchain.tools import StructuredTool, BaseTool
-from langchain.tools.render import format_tool_to_openai_function
+ 
+
+from langchain_core.tools import BaseTool
+
+from langchain_core.tools import StructuredTool
+from langchain_core.utils.function_calling import format_tool_to_openai_function
 from services.xbooker_api import XBookerAPIService
 from .xagent_tool import XAgentTool
 from .send_booking_invitations import SendBookingInvitationTool

@@ -1,4 +1,6 @@
-from langchain.memory import RedisChatMessageHistory, ConversationBufferMemory
+from langchain.memory import  ConversationBufferMemory
+
+from langchain_community.chat_message_histories import RedisChatMessageHistory
 from datetime import datetime
 from typing import Optional
 from configs import PY_ENV, REDIS_HOST

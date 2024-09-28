@@ -1,5 +1,9 @@
 from typing import Any, Dict
-from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+
+
+from langchain_core.prompts import MessagesPlaceholder
+
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.agents.format_scratchpad import format_to_openai_functions
 from .prompt import XAgentPrompt
 from ..memory import string_to_chat_history_list

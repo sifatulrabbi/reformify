@@ -1,5 +1,9 @@
 from typing import Union
-from langchain.schema.messages import HumanMessage, AIMessage
+
+
+from langchain_core.messages import HumanMessage
+
+from langchain_core.messages import AIMessage
 from icecream import ic
 
 

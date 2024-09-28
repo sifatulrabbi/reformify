@@ -3,7 +3,7 @@ The core logic of X-Agent 001.
 """
 import os
 from langchain.agents import AgentExecutor
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from typing import Dict
 
