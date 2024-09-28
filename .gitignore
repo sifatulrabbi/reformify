@@ -10,4 +10,5 @@ __pycache__
 .idea
 *.sqlite3
 *.ignore.*
+backend/store/*
 !.gitkeep
