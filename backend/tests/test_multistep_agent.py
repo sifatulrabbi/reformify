@@ -1,8 +1,17 @@
+if __name__ != "__main__":
+    print("this test should be run directly")
+    exit(1)
+
+import os
+import sys
+
+parent_dir = os.path.join(os.path.dirname(__file__), "..")
+sys.path.append(parent_dir)
+
+
 from agent.coverletter_writer import generate_coverletter
 
-
 user_id = "test-user-1"
-
 job_description = """Fullstack Developer (AI-Driven SaaS Platform)
 
 We are seeking a skilled Fullstack Developer to join our dynamic team and contribute to the ongoing development of our SaaS platform, which is heavily focused on streamlining RFP responses with integrated AI solutions. This role involves building and enhancing features for a cutting-edge platform that leverages advanced AI models (LLM).
