@@ -24,16 +24,14 @@ OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 
 
 class OutlinerTool:
-    # class Payload(BaseModel):
-    #     content_type: str = Field(
-    #         description="Type of the content to generate i.e. 'Upwork Proposal', 'Cover letter', etc"
-    #     )
-    #     job_description: str = Field(description="The description of the job")
     name = "outliner_tool"
-    description = "Outliner tool will create an outline when generating contents. Make sure to use this tool to understand how to best generate the requested content."
+    description = (
+        "Provide the job's description to create an outline for an application/letter"
+    )
 
     @staticmethod
-    def toolfn(job_description: str):
+    def outliner_tool(job_description: str):
+        print("running outliner_tool")
         prompt = [
             SystemMessage(
                 f"""You are an expert analyst. You will help the user by outlining the key points and requirements of a job description. The user's intent is to write a application/letter.
@@ -43,6 +41,7 @@ Think thoroughly and note down:
 - always reply in bullet points and don't include any explanation
 
 IMPORTANT: Don't make up information only provide and use the infromation available in the job post.
+
 Now create an outline for the given job description."""
             ),
             HumanMessage(
@@ -75,22 +74,28 @@ class MultiStepAgent:
 
     def _prepare_tools(self):
         self._tools: list[Tool] = [
-            Tool(OutlinerTool.name, OutlinerTool.toolfn, OutlinerTool.description)
+            Tool(
+                OutlinerTool.name, OutlinerTool.outliner_tool, OutlinerTool.description
+            )
         ]
 
     def _prepare_prompt(self):
         system_msg = """You are a helpful agent. Your one and only taks is to write formal/informal applications and letters for the user. You will write contents such as 'Upwork Proposal', 'Cover Letter', 'Job Application', and other formal or informal applications/letters. You have access to the following tools:
 
-{tools}
 {tool_names}
+{tools}
 
-- You should first understand the job's description and create an outline of what to do.
+- You will first create an outline of what to do by using the 'outliner_tool' tool. make sure to provide the full job description to get a proper outline.
 - Nextly you'll figure how the user best matches the job's requirements.
 - Figure out the best way to write the user requested application/letter.
 - Finally write the user requested application/letter.
 - Revise and adjust the application/letter till you feel comfortable.
 
 IMPORTANT: Make sure to use the available tools to complete one or all of these above mentioned steps.
+
+Make sure to provide the response exactly in the following format:
+Thought: Your reasoning
+Action: tool_name[tool input]
 
 Let's begin!
 
@@ -103,7 +108,5 @@ Let's begin!
 
     def _prepare_agent(self):
         self._llm = ChatOpenAI(model=OPENAI_MODEL)
-        self._agent = create_react_agent(
-            self._llm, self._tools, self._prompt  # , output_parser=SimpleOutputParser
-        )
+        self._agent = create_react_agent(self._llm, self._tools, self._prompt)
         self.exec = AgentExecutor.from_agent_and_tools(self._agent, self._tools)
