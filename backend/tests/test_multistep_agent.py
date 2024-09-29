@@ -11,7 +11,17 @@ sys.path.append(parent_dir)
 
 
 # from agent.coverletter_writer import generate_coverletter
+from agent.multi_step_agent_custom import CustomMultiStepAgent
 from agent.multi_step_agent import MultiStepAgent
+
+
+custom_agent = CustomMultiStepAgent()
+# result = custom_agent.custom_execute("Hello, what's the time now?")
+# result = custom_agent.execute("Hello, what's the time now?")
+# result = custom_agent.execute("What day will it be one month from today?")
+result = custom_agent.execute("run test suite")
+ic("result:", result)
+exit(0)
 
 
 user_id = "test-user-1"
