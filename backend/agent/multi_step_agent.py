@@ -1,8 +1,9 @@
-from langchain.agents import create_react_agent
-from langchain_core.messages import SystemMessage
+from langchain.agents import AgentExecutor, create_react_agent
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import PromptTemplate
-from langchain_core.tools import convert_runnable_to_tool, BaseTool
+from langchain_core.tools import BaseTool, Tool
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 __all__ = ["MultiStepAgent"]
 
@@ -10,46 +11,82 @@ OPENAI_MODEL = "gpt-4o-mini"
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 
 
-class MultiStepAgent:
-    def __init__(self, tools: list = [], *, system_message: SystemMessage):
-        self._available_tools = tools
-        self._system_prompt = (
-            SystemMessage("You are an inteligent and helpful agent.")
-            if not system_message
-            else system_message
+class OutlinerTool:
+    class Payload(BaseModel):
+        content_type: str = Field(
+            description="Type of the content to generate i.e. 'Upwork Proposal', 'Cover letter', etc"
         )
+        job_description: str = Field(description="The description of the job")
+
+    @staticmethod
+    def toolfn(payload: Payload) -> str:
+        prompt = [
+            SystemMessage(
+                f"""You are an expert analyst. You will help the user by outlining the key points and requirements of a job description. The user's intent is to write a '{payload.content_type}'.
+    Think thoroughly and note down:
+    - the key requirements of the job
+    - grasp the employers intent and relay it to the user so that they can craft the prfect '{payload.content_type}'
+    - always reply in bullet points and don't include any explanation
+
+    IMPORTANT: Don't make up information only provide and use the infromation available in the job post."""
+            ),
+            HumanMessage(
+                f"Here is my job description:\n\n{payload.job_description}\n\nPlease give me an outline for '{payload.content_type}'"
+            ),
+        ]
+        llm = ChatOpenAI(verbose=True, model=OPENAI_MODEL)
+        response = llm.invoke(prompt)
+        return str(response.content)
+
+
+class MultiStepAgent:
+    def __init__(self):
+        self._prepare_tools()
+        self._prepare_prompt()
+        self._prepare_agent()
+
+    def execute(self, job_description: str):
+        result = self.exec.invoke({"input": job_description})
+        return result
 
     def _prepare_tools(self):
-        self._tools: list[BaseTool] = []
+        self._tools: list[BaseTool] = [
+            Tool(
+                name="outliner_tool",
+                func=OutlinerTool.toolfn,
+                description="Outliner tool will create an outline when generating contents. Make sure to use this tool to understand how to best generate the requested content.",
+                args_schema=OutlinerTool.Payload,
+            )
+        ]
 
     def _prepare_prompt(self):
-        template = """Answer the following questions as best you can. You have access to the following tools:
+        template = """You are a helpful agent. Your one and only taks is to write formal/informal applications and letters for the user. You will write contents such as 'Upwork Proposal', 'Cover Letter', 'Job Application', and other formal or informal applications/letters. You have access to the following tools:
 
+<available-tools>
 {tools}
+</available-tools>
 
-Use the following format:
+- You should first understand the job's description and create an outline of what to do.
+- Nextly you'll figure how the user best matches the job's requirements.
+- Figure out the best way to write the user requested application/letter.
+- Finally write the user requested application/letter.
+- Revise and adjust the application/letter till you feel comfortable.
 
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+IMPORTANT: Make sure to use the available tools to complete one or all of these above mentioned steps.
 
-Begin!
+Let's begin!
 
-Question: {input}
-Thought:{agent_scratchpad}"""
+<job-description>
+{input}
+</job-description>
+
+<thoughts>
+{agent_scratchpad}
+</thoughts>"""
 
         self._prompt = PromptTemplate.from_template(template)
 
     def _prepare_agent(self):
         self._llm = ChatOpenAI(verbose=True, model=OPENAI_MODEL)
-        self._agent = create_react_agent(
-            self._llm, tools=self._tools, prompt=self._prompt
-        )
-
-    def _outliner_agent(self):
-        pass
+        self._agent = create_react_agent(self._llm, self._tools, self._prompt)
+        self.exec = AgentExecutor.from_agent_and_tools(self._agent, self._tools)

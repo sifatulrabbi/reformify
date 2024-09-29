@@ -3,7 +3,7 @@ All the tools for the Agent to perform different tasks based on the user's reque
 """
 
 from typing import List
- 
+
 
 from langchain_core.tools import BaseTool
 
@@ -38,21 +38,22 @@ class XAgentTools:
             SendBookingInvitationTool(
                 user_id=self._user_id,
                 org_id=self._org_id,
-                api_service=self._api_service),
+                api_service=self._api_service,
+            ),
             QueryBookings(
                 user_id=self._user_id,
                 org_id=self._org_id,
-                api_service=self._api_service),
+                api_service=self._api_service,
+            ),
             GetOrganizationMembersTool(
-                org_id=self._org_id,
-                api_service=self._api_service),
+                org_id=self._org_id, api_service=self._api_service
+            ),
             CurrentDateInfo(),
         ]
 
     @property
     def openai_functions(self):
-        functions = [format_tool_to_openai_function(
-            t) for t in self.tools_list]
+        functions = [format_tool_to_openai_function(t) for t in self.tools_list]
         return functions
 
     @property
