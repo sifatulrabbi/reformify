@@ -16,6 +16,7 @@ langchain
 langchain-openai
 langchain-community
 langchain-chroma
+langgraph
 sentence-transformers
 torch
 transformers

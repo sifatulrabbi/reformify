@@ -4,12 +4,15 @@ if __name__ != "__main__":
 
 import os
 import sys
+from icecream import ic
 
 parent_dir = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(parent_dir)
 
 
-from agent.coverletter_writer import generate_coverletter
+# from agent.coverletter_writer import generate_coverletter
+from agent.multi_step_agent import MultiStepAgent
+
 
 user_id = "test-user-1"
 job_description = """Fullstack Developer (AI-Driven SaaS Platform)
@@ -35,7 +38,10 @@ Key Requirements:
 
 This is a unique opportunity for someone passionate about full stack development and interested in shaping the future of AI-driven SaaS platforms."""
 
-result = generate_coverletter(user_id, "Upwork Proposal", job_description)
+# result = generate_coverletter(user_id, "Upwork Proposal", job_description)
+
+agent = MultiStepAgent()
+result = agent.execute(job_description)
 print("=" * 80)
-print(result)
+ic(result)
 print("=" * 80)
