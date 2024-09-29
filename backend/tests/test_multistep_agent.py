@@ -9,19 +9,16 @@ from icecream import ic
 parent_dir = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(parent_dir)
 
-
-# from agent.coverletter_writer import generate_coverletter
-from agent.multi_step_agent_custom import CustomMultiStepAgent
-from agent.multi_step_agent import MultiStepAgent
+from agent.multi_step_agent import CoverLetterAgent
 
 
-custom_agent = CustomMultiStepAgent()
+# custom_agent = CoverLetterAgent()
 # result = custom_agent.custom_execute("Hello, what's the time now?")
 # result = custom_agent.execute("Hello, what's the time now?")
 # result = custom_agent.execute("What day will it be one month from today?")
-result = custom_agent.execute("run test suite")
-ic("result:", result)
-exit(0)
+# result = custom_agent.execute("run test suite")
+# ic("result:", result)
+# exit(0)
 
 
 user_id = "test-user-1"
@@ -48,9 +45,7 @@ Key Requirements:
 
 This is a unique opportunity for someone passionate about full stack development and interested in shaping the future of AI-driven SaaS platforms."""
 
-# result = generate_coverletter(user_id, "Upwork Proposal", job_description)
-
-agent = MultiStepAgent()
+agent = CoverLetterAgent()
 result = agent.execute(job_description)
 print("=" * 80)
 ic(result)

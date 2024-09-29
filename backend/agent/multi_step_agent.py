@@ -1,112 +1,90 @@
-import os
-from typing import Union
-from dotenv import load_dotenv
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain.agents.agent import AgentOutputParser
-from langchain_core.agents import AgentAction, AgentFinish
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.prompts import PromptTemplate
-from langchain_core.tools import Tool
+from datetime import datetime, timedelta, timezone
+from langchain.agents.agent import AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from langchain.agents import create_tool_calling_agent
+from langchain.tools import Tool
+from agent.base import OPENAI_MODEL, OPENAI_API_KEY
 
-__all__ = ["MultiStepAgent"]
-
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    load_dotenv()
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise EnvironmentError("OPENAI_API_KEY not found")
-
-OPENAI_MODEL = "gpt-4o-mini"
-OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
+__all__ = ["CoverLetterAgent"]
 
 
-class OutlinerTool:
-    name = "outliner_tool"
-    description = (
-        "Provide the job's description to create an outline for an application/letter"
-    )
-
-    @staticmethod
-    def outliner_tool(job_description: str):
-        print("running outliner_tool")
-        prompt = [
-            SystemMessage(
-                f"""You are an expert analyst. You will help the user by outlining the key points and requirements of a job description. The user's intent is to write a application/letter.
-Think thoroughly and note down:
-- the key requirements of the job
-- grasp the employers intent and relay it to the user so that they can craft the prfect application/letter
-- always reply in bullet points and don't include any explanation
-
-IMPORTANT: Don't make up information only provide and use the infromation available in the job post.
-
-Now create an outline for the given job description."""
-            ),
-            HumanMessage(
-                f"Here is my job description:\n\n{job_description}\n\nPlease give me an outline for application/letter"
-            ),
-        ]
-        llm = ChatOpenAI(verbose=True, model=OPENAI_MODEL)
-        response = llm.invoke(prompt)
-        if not isinstance(response.content, str):
-            raise TypeError(
-                f"Expected return type to be 'str' found '{type(response.content)}'"
-            )
-        return response
+def get_current_time(*args, **kwargs):
+    print("provided args & kwargs:", args, kwargs)
+    return datetime.now(timezone.utc).isoformat()
 
 
-class SimpleOutputParser(AgentOutputParser):
-    def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
-        return AgentAction("outliner_tool", "", text)
+def add_days_to_datetime(timestamp: str, days_to_add: int):
+    now = datetime.now(timezone.utc)
+    future_time = now + timedelta(days=days_to_add)
+    return future_time.isoformat()
 
 
-class MultiStepAgent:
+get_current_time_tool = Tool(
+    "get_current_time_tool",
+    get_current_time,
+    "Use this tool to get the current time in ISO format.",
+)
+add_days_to_datetime_tool = Tool(
+    "add_days_to_datetime_tool",
+    add_days_to_datetime,
+    "Add N amount of days to a timesamp then return the future timestamp. Provide a 'timestamp' and a 'days_to_add' to get the future timestamp.",
+)
+outliner_tool = None
+skill_extractor_tool = None
+research_tool = None
+expert_writer_tool = None
+final_reviser_too = None
+
+
+class CoverLetterAgent:
+    """Multi step agent to write cover letters or upwork proposals
+
+    Process:
+    - Identify user's strengths and key skills
+    - Create an outline for the application/letter
+    - Write the letter
+    - Review and improve
+    - Return results
+    """
+
     def __init__(self):
-        self._prepare_tools()
-        self._prepare_prompt()
-        self._prepare_agent()
+        self._prompt = ChatPromptTemplate(
+            [
+                (
+                    "system",
+                    """You are a helpful agent. Your one and only taks is to write a '{content_type}' for the user by utilizing all the available tools and thoroughly analyzing the given job's description.
 
-    def execute(self, job_description: str):
-        result = self.exec.invoke({"input": job_description})
-        return result
+Let's progress step by step.
+- First create an outline of what to do by using the 'outliner_tool' tool.
+- Nextly, use the 'skill_extractor_tool' tool to figure out what makes the user the best fit for the job.
+- Now, use the 'research_tool' tool to understand the best way to write a '{content_type}' based on the job description.
+- Finally write the '{content_type}' using the 'expert_writer_tool' tool. Make sure you provide all the previous tool outputs to this tool.
+- Use the 'final_reviser_too' tool to revise the generated content and if it tell you to redo the process then keep redoing it.
 
-    def _prepare_tools(self):
-        self._tools: list[Tool] = [
-            Tool(
-                OutlinerTool.name, OutlinerTool.outliner_tool, OutlinerTool.description
-            )
-        ]
-
-    def _prepare_prompt(self):
-        system_msg = """You are a helpful agent. Your one and only taks is to write formal/informal applications and letters for the user. You will write contents such as 'Upwork Proposal', 'Cover Letter', 'Job Application', and other formal or informal applications/letters. You have access to the following tools:
-
-{tool_names}
-{tools}
-
-- You will first create an outline of what to do by using the 'outliner_tool' tool. make sure to provide the full job description to get a proper outline.
-- Nextly you'll figure how the user best matches the job's requirements.
-- Figure out the best way to write the user requested application/letter.
-- Finally write the user requested application/letter.
-- Revise and adjust the application/letter till you feel comfortable.
-
+IMPORTANT: Make sure to provide the full job description to the tool.
 IMPORTANT: Make sure to use the available tools to complete one or all of these above mentioned steps.
 
-Make sure to provide the response exactly in the following format:
-Thought: Your reasoning
-Action: tool_name[tool input]
-
-Let's begin!
-
+Let's begin!""",
+                ),
+                (
+                    "human",
+                    """Write me a '{content_type}' for the following job description.
 <job-description>
-{input}
-</job-description>
+{job_description}
+</job-description>""",
+                ),
+                ("placeholder", "{agent_scratchpad}"),
+            ]
+        )
+        self._tools = [
+            get_current_time_tool,
+            add_days_to_datetime_tool,
+        ]
+        self._llm = ChatOpenAI(model=OPENAI_MODEL, verbose=True, api_key=OPENAI_API_KEY)
+        self._agent = create_tool_calling_agent(self._llm, self._tools, self._prompt)
+        self._exec = AgentExecutor(agent=self._agent, tools=self._tools)
 
-{agent_scratchpad}"""
-        self._prompt = PromptTemplate.from_template(system_msg)
-
-    def _prepare_agent(self):
-        self._llm = ChatOpenAI(model=OPENAI_MODEL)
-        self._agent = create_react_agent(self._llm, self._tools, self._prompt)
-        self.exec = AgentExecutor.from_agent_and_tools(self._agent, self._tools)
+    def execute(self, userinput: str):
+        res = self._exec.invoke({"input": userinput})
+        return res
