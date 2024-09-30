@@ -45,8 +45,8 @@ Key Requirements:
 
 This is a unique opportunity for someone passionate about full stack development and interested in shaping the future of AI-driven SaaS platforms."""
 
-agent = CoverLetterAgent()
-result = agent.execute(job_description)
+agent = CoverLetterAgent(job_description)
+result = agent.execute()
 print("=" * 80)
 ic(result)
 print("=" * 80)
