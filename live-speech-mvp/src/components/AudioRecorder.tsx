@@ -1,10 +1,32 @@
 import React, { useEffect, useState, useRef } from "react";
+import { io, Socket } from "socket.io-client";
+
+let ws: Socket | null = null;
+const serverUrl = "http://localhost:8000";
 
 const AudioRecorder: React.FC = () => {
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  const connectSocket = () => {
+    ws = io(serverUrl, {
+      autoConnect: true,
+      retries: 5,
+      reconnectionDelay: 2000,
+      path: "/reformify/api/ws",
+    });
+
+    ws.on("connect", (...args: any[]) => {
+      console.log("connected to the socket server", args);
+    });
+    ws.on("message", (msg: any) => {
+      console.log("received msg from the server:", msg);
+    });
+
+    ws.connect();
+  };
 
   const handlePlayback = () => {
     if (audioChunks.length < 1) {
@@ -17,6 +39,7 @@ const AudioRecorder: React.FC = () => {
   };
 
   const startRecording = async () => {
+    // transcribe_chunk
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -27,6 +50,7 @@ const AudioRecorder: React.FC = () => {
       setAudioChunks([]);
 
       mediaRecorder.ondataavailable = (e: BlobEvent) => {
+        console.log("audio chunk available:");
         if (e.data && e.data.size > 0) {
           setAudioChunks((prevChunks) => [...prevChunks, e.data]);
         }
@@ -57,9 +81,16 @@ const AudioRecorder: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!ws) {
+      connectSocket();
+    }
+
     return () => {
       if (isRecording) {
         stopRecording();
+      }
+      if (ws) {
+        ws.disconnect();
       }
     };
   }, [isRecording]);

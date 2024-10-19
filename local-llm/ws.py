@@ -16,7 +16,10 @@ sio = socketio.AsyncServer(
 
 
 @sio.event
-async def connect(sid: sid, environ: dict[str, Any], auth: Any) -> bool:
+async def connect(sid: str, environ: dict[str, Any], auth: Any) -> bool:
+    print(
+        "attempting to connect a new client with sid:", sid, "\n", environ, "\n", auth
+    )
     return True
 
 
@@ -24,5 +27,5 @@ async def connect(sid: sid, environ: dict[str, Any], auth: Any) -> bool:
 async def transcribe_chunk(sid: str, audiodata: bytes):
     filename = sid + "-" + str(uuid4())
     print(filename)
-    async with tempfile.NamedTemporaryFile(suffix=".mp3", delete_on_close=True) as tf:
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete_on_close=True) as tf:
         pass
