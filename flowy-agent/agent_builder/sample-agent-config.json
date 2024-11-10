@@ -1,0 +1,24 @@
+[
+  {
+    "id": "example-id-24324",
+    "preceding_node": null,
+    "subsequent_node": "example-id-24325",
+    "prompt_id": "",
+    "metadata": {
+      "title": "",
+      "description": "",
+      "external_metadata": null
+    }
+  },
+  {
+    "id": "example-id-24325",
+    "preceding_node": "example-id-24324",
+    "subsequent_node": null,
+    "prompt_id": "",
+    "metadata": {
+      "title": "",
+      "description": "",
+      "external_metadata": null
+    }
+  }
+]
